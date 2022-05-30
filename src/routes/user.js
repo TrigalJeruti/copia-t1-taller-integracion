@@ -240,7 +240,7 @@ router.delete('/:id',verifytoken, async(req, res) => {
 
 /* ------------------------------------------------------------ */
 
-router.get('/:id/:scope', async(req, res) => {
+router.get('/:id/:scope', verifytoken, async(req, res) => {
     try{
         const { id, scope } = req.params;
         const token_client = await usertoken.findOne({ where: { 'token': req.token } });
