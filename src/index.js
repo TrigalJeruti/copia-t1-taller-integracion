@@ -33,7 +33,7 @@ app.use(cors());
 
 //routes
 app.use(require('./routes/index'));
-app.use('/users', require('./routes/user'));
+/* app.use('/users', require('./routes/user')); */
 
     
 
