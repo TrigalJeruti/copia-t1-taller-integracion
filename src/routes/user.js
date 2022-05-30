@@ -18,6 +18,18 @@ function generateToken(user) {
     });
 };
 
+function verifytoken(req, res, next){
+    const bearer = req.headers['authorization'];
+    if (typeof bearer !== 'undefined'){
+        const bearerToken = bearer.split(" ")[1];
+        req.token = bearerToken;
+        next();
+    }else{
+        res.sendStatus(403);
+    }
+}
+
+
 /* ------------------------------------------------------------ */
 
 router.get('/', async(req, res) => {
@@ -88,6 +100,42 @@ router.post('/', async(req, res) => {
                 "toke": token
             });
 
+    }catch (error){
+        throw new Error(error);
+    }
+});
+
+
+/* ------------------------------------------------------------ */
+
+router.get('/:id', verifytoken, async(req, res) => {
+    try{
+        const { id } = req.params;
+        const token_client = await usertoken.findOne({ where: { 'token': req.token } });
+        const token_user = await usertoken.findOne({ where: { 'userid': id } });
+        if (!token_client){
+            res
+                .status(401)
+                .json({ "error": "invalid token" });
+        }else if (token_client && token_client['token'] !== token_user['token'] ){
+            res
+                .status(403)
+                .json({ "error": "you don't have access to this resource" });
+        }else {
+            const usuario = await user.findByPk(id);
+            res
+                .status(200)
+                .json({ usuario });
+        }
+/*         jwtgenerator.verify(req.token, process.env.JWT_SECRET, (error, authData) => {
+            console.log(authData);
+            if(error){
+                res.sendStatus(403).json({ 'mensaje' : "Funciono", 'authData': authData});
+            }else{
+                console.log(authData);
+                res.json({ 'mensaje' : "Funciono", 'authData': authData});
+            }
+        }); */
     }catch (error){
         throw new Error(error);
     }
