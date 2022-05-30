@@ -1,6 +1,6 @@
 const Router = require('express');
 const router = Router();
-
+const user = require('../models').user;
 
 router.get('/si', async(req, res) => {
     try{
