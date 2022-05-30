@@ -142,4 +142,163 @@ router.get('/:id', verifytoken, async(req, res) => {
 });
 
 
+/* ------------------------------------------------------------ */
+
+router.patch('/:id', verifytoken, async(req, res) => {
+    try{
+        const { id } = req.params;
+        const token_client = await usertoken.findOne({ where: { 'token': req.token } });
+        const token_user = await usertoken.findOne({ where: { 'userid': id } });
+        if (!token_client){
+            res
+                .status(401)
+                .json({ "error": "invalid token" });
+        }else if (token_client && token_client['token'] !== token_user['token'] ){
+            res
+                .status(403)
+                .json({ "error": "you don't have access to this resource" });
+        }else {
+            const { username, password, name, age, psu_score, university, gpa_score, job, salary, promotion, hospital, operations, medical_debt } = req.body;
+            const usuario = await user.findByPk(id);
+            if (!usuario) {
+                return res
+                    .status(400)
+                    .json({"error": "User not exist"});
+            } if (username) {
+                const exist_u = await user.findOne({ where: {'username': username} });
+                if (exist_u){
+                    return res
+                        .status(409)
+                        .json({"error": "user already exists"});
+                }
+                usuario.update({'username': username});
+            } if (password){
+                usuario.update({'password': password});
+            } if (name){
+                usuario.update({'name': name});
+            } if (age){
+                usuario.update({'age': age});
+            } if (university){
+                usuario.update({'university': university});
+            } if (gpa_score){
+                usuario.update({'gpa_score': gpa_score});
+            } if (job){
+                usuario.update({'job': job});
+            } if (salary){
+                usuario.update({'salary': salary});
+            } if (promotion){
+                usuario.update({'promotion': promotion});
+            } if (hospital){
+                usuario.update({'hospital': hospital});
+            } if (operations){
+                usuario.update({'operations': operations});
+            } if (medical_debt){
+                usuario.update({'medical_debt': medical_debt});
+            } 
+            
+            await usuario.save();
+            res.json({ usuario }).status(200);
+        }
+    }catch (error){
+        throw new Error(error);
+    }
+});
+
+
+/* ------------------------------------------------------------ */
+
+router.delete('/:id',verifytoken, async(req, res) => {
+    try{
+        const { id } = req.params;
+        const token_client = await usertoken.findOne({ where: { 'token': req.token } });
+        const token_user = await usertoken.findOne({ where: { 'userid': id } });
+        if (!token_client){
+            res
+                .status(401)
+                .json({ "error": "invalid token" });
+        }else if (token_client && token_client['token'] !== token_user['token'] ){
+            res
+                .status(403)
+                .json({ "error": "you don't have access to this resource" });
+        }else {
+            const usuario = await user.findByPk(id);
+            if (!usuario) {
+                return res
+                    .status(409)
+                    .json({"error": "User not exist"});
+            }
+        
+            await usuario.destroy();
+            res.status(204).send("");
+        }
+    }catch (error){
+        throw new Error(error);
+    }
+});
+
+
+
+/* ------------------------------------------------------------ */
+
+router.get('/:id/:scope', async(req, res) => {
+    try{
+        const { id, scope } = req.params;
+        const token_client = await usertoken.findOne({ where: { 'token': req.token } });
+        const token_user = await usertoken.findOne({ where: { 'userid': id } });
+        if (!token_client){
+            res
+                .status(401)
+                .json({ "error": "invalid token" });
+        }else if (token_client && token_client['token'] !== token_user['token'] ){
+            res
+                .status(403)
+                .json({ "error": "you don't have access to this resource" });
+        }else {
+            const usuario = await user.findByPk(id);
+            if (!usuario) {
+                return res
+                    .status(409)
+                    .json({"error": "User not exist"});
+            } if (String(scope) == 'basic') {
+                res
+                    .status(200)
+                    .json({ 
+                        "username": usuario.username,
+                        "name": usuario.name,
+                        "age": usuario.age
+                    });
+            } if (String(scope) == 'education') {
+                res
+                    .status(200)
+                    .json({ 
+                        "psu_score": usuario.psu_score,
+                        "university": usuario.university,
+                        "gpa_score": usuario.gpa_score
+                    });
+            } if (String(scope) == 'work') {
+                res
+                    .status(200)
+                    .json({ 
+                        "job": usuario.job,
+                        "salary": usuario.salary,
+                        "promotion": usuario.promotion
+                    });
+            } if (String(scope) == 'medical') {
+                res
+                    .status(200)
+                    .json({ 
+                        "hospital": usuario.hospital,
+                        "operations": usuario.operations,
+                        "medical_debt": usuario.medical_debt
+                    });
+            }
+        }
+    }catch (error){
+        throw new Error(error);
+    }
+});
+
+
+
+
 module.exports = router;
